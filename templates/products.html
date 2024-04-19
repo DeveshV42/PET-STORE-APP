@@ -1,145 +1,73 @@
 <!DOCTYPE html>
+<html lang="en">
 
-<html>
 <head>
- <title>Pet store</title>
- <link rel="stylesheet" type="text/css" href="static\styles.css">
-<link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <meta charset="UTF-8">
+    <title>Pet Store</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
 </head>
+
 <body>
     <nav class="navbar navbar-dark bg-dark">
         <a class="navbar-brand" href="/">PET STORE</a>
-        <button type="submit" onclick='window.location="http://localhost:5000/dropsession"'>Logout</button>
-      </nav>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"> 
-<div class="container">
-    <div class="row">
-  <p><h2>Pet Store</h2></p>
-   <div class="col-sm-12">
-        <div>
+        <button type="button" onclick="window.location.href='/logout'" class="btn btn-secondary">Logout</button>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="text-center">
+            <h2>Pet Store</h2>
+        </div>
+
+        <!-- Display flash messages -->
         {% with messages = get_flashed_messages() %}
             {% if messages %}
-            <ul class=flashes>
-            {% for message in messages %}
-            <li>{{ message }}</li>
-            {% endfor %}
-            </ul>
+                <ul class="flashes">
+                    {% for message in messages %}
+                        <li>{{ message }}</li>
+                    {% endfor %}
+                </ul>
             {% endif %}
         {% endwith %}
+
+        <!-- List of products -->
+        <div class="row">
+            {% for product in products %}
+                <div class="col-md-4">
+                    <div class="card mb-4">
+                        <!-- Updated img src path -->
+                        <img src="static/images/{{ product.code }}.jpg" class="card-img-top" alt="{{ product.name }}">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ product.name }}</h5>
+                            <p class="card-text">Price: ${{ product.price }}</p>
+                            <form method="POST" action="{{ url_for('add_to_cart') }}">
+                                <input type="hidden" name="code" value="{{ product.code }}">
+                                <div class="form-group">
+                                    <label for="quantity-{{ product.code }}">Quantity:</label>
+                                    <input type="number" class="form-control" name="quantity" id="quantity-{{ product.code }}" value="1" min="1" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Add to Cart</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
         </div>
-  {% if 'cart_item' in session %}
-   <p><a id="btnEmpty" href="{{ url_for('.empty_cart') }}" class="btn btn-danger">Empty Cart</a></p>
-            <table class="table table-hover">
-                <thead>
-                    <tr>
-                        <th>Product</th>
-                        <th>Quantity</th>
-                        <th class="text-center">Unit Price</th>
-                        <th class="text-center">Price</th>
-                        <th> </th>
-                    </tr>
-                </thead>
-                <tbody>
-    {% for key, val in session['cart_item'].items() %}
-        {% set quantity = session['cart_item'][key]['quantity'] %}
-        {% set price = session['cart_item'][key]['price'] %}
-        {% set item_price = session['cart_item'][key]['total_price'] %} 
-                    <tr>
-                        <td class="col-sm-8 col-md-6">
-                        <div class="media">
-                            <a class="thumbnail pull-left" href="#"> <img class="media-object" src="/static/images/{{ session['cart_item'][key]['image'] }}" style="width: 72px; height: 72px;"> </a>
-                            <div class="media-body" style="padding-left:10px;">
-                                <h4 class="media-heading"> <a href="#">{{ session['cart_item'][key]['name'] }}</a></h4>
-                                <h5 class="media-heading"> Pet Store <a href="#"></a></h5>
-                                <span>Status: </span><span class="text-success"><strong>In Stock</strong></span>
-                            </div>
-                        </div></td>
-                        <td class="col-sm-1 col-md-1" style="text-align: center">
-                        <input type="email" class="form-control" value="{{ quantity }}">
-                        </td>
-                        <td class="col-sm-1 col-md-1 text-center"><strong>{{ price }} </strong></td>
-                        <td class="col-sm-1 col-md-1 text-center"><strong>{{ item_price }} </strong></td>
-                        <td class="col-sm-1 col-md-1">
-                        <a href="{{ url_for('.delete_product', code=session['cart_item'][key]['code']) }}" class="btn btn-danger">
-                            <span class="glyphicon glyphicon-remove"></span> Remove
-                        </a></td>
-                    </tr>
-    {% endfor %}
-                    <tr>
-                        <td colspan="4"><h5>Total Quantity</h5></td>
-                        <td class="text-right"><h5><strong>{{ session['all_total_quantity'] }}</strong></h5></td>
-                    </tr>
-                    <tr>
-                        <td colspan="3"><h3>Total</h3></td>
-                        <td colspan="2" class="text-right"><h3><strong>Rs/- {{ session['all_total_price'] }}</strong></h3></td>
-                    </tr>
-                    <tr>
-                        <td colspan="4">
-                        <button type="button" class="btn btn-default">
-                            <span class="glyphicon glyphicon-shopping-cart"></span> Continue Shopping
-                        </button></td>
-                        <td>
-                            <button type="submit" onclick='window.location="http://localhost:5000/form"'>Checkout</button>
-                              
-                    </td>
-                    </tr>
-                </tbody>
-            </table>
-  {% else: %}
-   <div class="no-records">Your Cart is Empty</div>
-  {% endif %}
+
+        <!-- Cart management buttons -->
+        <div class="mt-4">
+            <a href="{{ url_for('empty_cart') }}" class="btn btn-warning">Empty Cart</a>
+            <a href="{{ url_for('checkout') }}" class="btn btn-success">Checkout</a>
         </div>
     </div>
-</div>
-                
-<section class="our-publication pt-100 pb-70">
-            <div class="container">
-                <div class="section-header">
-                    <i class="fa fa-book"></i>
-                    <h2>STORE</h2>
-                    <p> </p>
-                </div>
-                  
-                <div class="row">
-    {% for product in products %}
-                    <div class="col-sm-6 col-lg-3"> 
-      <form method="post" action="/add">
-                        <div class="single-publication">
-                            <figure style="width:263px;">
-                                <a href="#">
-                                    <img src="/static/images/{{ product.image }}">
-                                </a>
-                                
-                            </figure>
-  
-                            <div class="publication-content">
-                                <span class="category">{{ product.category }}</span>
-                                <h3><a href="#">{{ product.name }}</a></h3>
-                                <ul>
-                                    <li><i class="icofont-star"></i></li>
-                                    <li><i class="icofont-star"></i></li>
-                                    <li><i class="icofont-star"></i></li>
-                                    <li><i class="icofont-star"></i></li>
-                                    <li><i class="icofont-star"></i></li>
-                                </ul>
-                                <h4 class="price">Price- {{ product.price }}</h4>
-                            </div>
-  
-                            <div class="add-to-cart">
-        <input type="hidden" name="code" value="{{ product.code }}"/>
-        <input type="text" class="product-quantity" name="quantity" value="1" size="2" />
-        <input type="submit" value="Add to Cart" class="default-btn" />
-                            </div>
-                        </div>
-      </form>
-                    </div>
-                {% endfor %}    
-                      
-                </div>
-            </div>
-        </section>
-</body>
-</html>
 
+    <footer class="bg-dark text-white py-3 text-center mt-4">
+        <div class="container">
+            <p>&copy; 2024 Pet Store</p>
+        </div>
+    </footer>
+</body>
+
+</html>
